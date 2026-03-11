@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>專注旅行計時器 🗺️</title>
+  <meta name="description" content="將專注時間化為旅行距離，結合番茄鐘與互動地圖的生產力工具">
+  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <!-- 地圖 -->
+  <div id="map"></div>
+
+  <!-- 完美置中的虛擬角色標記 (消除相機追蹤時的抖動) -->
+  <div id="center-character" class="character-marker"
+    style="position: absolute; left: 50%; top: 50%; transform: translate(-50%, -100%); display: none; z-index: 100; pointer-events: none;">
+  </div>
+
+  <!-- 旅行儀表板 -->
+  <div id="dashboard-panel" class="panel">
+    <div class="label">現在地</div>
+    <h2 id="current-location">尚未出發</h2>
+    <div class="next-stop">
+      下一站：<span id="next-stop">—</span>
+      <span id="next-distance" class="badge" style="display:none"></span>
+    </div>
+    <div style="margin-top:10px">
+      <div class="stat-row">
+        <span>已走距離</span>
+        <span class="stat-value" id="distance-traveled">0 km</span>
+      </div>
+      <div class="stat-row">
+        <span>剩餘距離</span>
+        <span class="stat-value" id="distance-remaining">— km</span>
+      </div>
+      <div class="stat-row">
+        <span>總距離</span>
+        <span class="stat-value" id="total-distance">— km</span>
+      </div>
+      <div class="stat-row">
+        <span>時速</span>
+        <span class="stat-value">60 km/h</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- BGM 面板 -->
+  <div id="bgm-panel" class="panel">
+    <div class="bgm-title">🎵 <span id="bgm-now-playing">選擇音樂</span></div>
+    <div class="bgm-controls">
+      <button id="bgm-prev" title="上一首">⏮</button>
+      <button id="bgm-play" class="play-btn" title="播放">▶</button>
+      <button id="bgm-next" title="下一首">⏭</button>
+      <input type="range" id="volume-slider" min="0" max="100" value="50" title="音量">
+    </div>
+    <div id="bgm-progress">
+      <div id="bgm-progress-bar"></div>
+    </div>
+    <div class="bgm-time"><span id="bgm-current-time">0:00</span><span id="bgm-total-time">0:00</span></div>
+    <div class="bgm-list" id="bgm-list"></div>
+  </div>
+
+  <!-- Todo 面板 -->
+  <div id="todo-panel" class="panel">
+    <h3>📝 待辦事項</h3>
+    <div id="todo-input-row">
+      <input type="text" id="todo-input" placeholder="新增任務...">
+      <button id="todo-add-btn">新增</button>
+    </div>
+    <ul id="todo-list"></ul>
+  </div>
+
+  <!-- 計時器面板 -->
+  <div id="timer-panel" class="panel">
+    <div class="timer-tabs">
+      <button class="timer-tab active" data-mode="countup">⏱ 正計時</button>
+      <button class="timer-tab" data-mode="pomodoro">🍅 番茄鐘</button>
+    </div>
+    <div class="pomodoro-settings" id="pomodoro-settings" style="display:none">
+      <label>工作 <input type="number" id="pomo-work" value="25" min="1" max="120"> 分</label>
+      <label style="margin-left:8px">休息 <input type="number" id="pomo-break" value="5" min="1" max="60"> 分</label>
+      <label style="margin-left:8px">長休 <input type="number" id="pomo-long" value="15" min="1" max="60"> 分</label>
+    </div>
+    <div id="pomodoro-counter" style="display:none">🍅 <span id="pomo-count">0</span> / 4</div>
+    <div id="timer-display">00:00:00</div>
+    <div id="timer-label">FOCUS TIME</div>
+    <div class="timer-buttons">
+      <button id="btn-start">開始旅行</button>
+      <button id="btn-pause" style="display:none">一時停止</button>
+      <button id="btn-end" style="display:none">結束</button>
+    </div>
+  </div>
+
+  <!-- 活動偵測 -->
+  <div id="activity-panel" class="panel">
+    <div class="indicator"></div>
+    <span>持續操作偵測：</span>
+    <span id="activity-time">0</span> 分鐘
+    <span style="margin-left:8px">閾值</span>
+    <input type="number" id="activity-threshold" value="60" min="5" max="240"> 分
+  </div>
+
+  <!-- 恢復旅程彈窗 -->
+  <div class="modal-overlay" id="resume-modal">
+    <div class="modal">
+      <h2>🚗 歡迎回來！</h2>
+      <p>系統偵測到您上次有一趟未完成的旅程：<br><strong id="resume-route-name"></strong></p>
+      <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px;">
+        已走距離：<span id="resume-distance"></span> km<br>
+        專注時間：<span id="resume-time"></span>
+      </p>
+      <div style="display: flex; gap: 10px;">
+        <button id="resume-discard" style="background: #e2e8f0; color: #475569; width: 50%;">重新開始</button>
+        <button id="resume-confirm" style="width: 50%;">繼續旅行</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 路線選擇彈窗 -->
+  <div class="modal-overlay" id="route-modal">
+    <div class="modal">
+      <h2>選擇旅行路線 🎲</h2>
+      <p>選擇你的旅行路線，專注時間將化為旅行距離！</p>
+      <div class="route-picker" id="route-picker"></div>
+      <button id="route-confirm">出發！</button>
+    </div>
+  </div>
+
+  <!-- 完成彈窗 -->
+  <div class="modal-overlay" id="complete-modal">
+    <div class="modal">
+      <h2>辛苦了！🎉</h2>
+      <p>本次旅行結果</p>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <div class="val" id="result-time">0:00</div>
+          <div class="lbl">專注時間</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="result-distance">0 km</div>
+          <div class="lbl">移動距離</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="result-pomos">0</div>
+          <div class="lbl">番茄鐘</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="result-todos">0</div>
+          <div class="lbl">完成任務</div>
+        </div>
+      </div>
+      <button id="complete-close">確認</button>
+    </div>
+  </div>
+
+  <!-- 活動提醒彈窗 -->
+  <div class="modal-overlay alert-modal" id="alert-modal">
+    <div class="modal">
+      <h2>⏰ 該休息了！</h2>
+      <p id="alert-message">您已經持續操作超過 60 分鐘了，建議起來活動一下、看看遠方！</p>
+      <button id="alert-close">知道了，謝謝提醒！</button>
+    </div>
+  </div>
+
+  <!-- 閒置偵測彈窗 -->
+  <div class="modal-overlay" id="idle-modal">
+    <div class="modal">
+      <h2>💤 歡迎回來！</h2>
+      <p>偵測到您離開了一段時間，計時器已自動暫停。</p>
+      <button id="idle-continue">繼續旅行</button>
+    </div>
+  </div>
+
+  <!-- 定位追蹤按鈕 -->
+  <button id="btn-recenter" class="recenter-btn" title="回到人物視角" style="display:none">
+    <span style="font-size:18px">🎯</span> 恢復視角
+  </button>
+
+  <!-- 歷史紀錄按鈕 -->
+  <button id="btn-history" class="history-btn" title="我的旅程紀錄">
+    <span style="font-size:18px">🏆</span> 我的紀錄
+  </button>
+
+  <!-- 歷史紀錄彈窗 -->
+  <div class="modal-overlay" id="history-modal">
+    <div class="modal" style="max-width: 500px; width: 90%;">
+      <h2>🏆 我的旅程紀錄</h2>
+      <div class="stat-grid" style="margin-bottom: 20px;">
+        <div class="stat-box">
+          <div class="val" id="hist-total-days">0</div>
+          <div class="lbl">走過天數</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="hist-total-km">0</div>
+          <div class="lbl">累計里程 (km)</div>
+        </div>
+        <div class="stat-box">
+          <div class="val" id="hist-total-time">0h</div>
+          <div class="lbl">總專注時數</div>
+        </div>
+      </div>
+      <h3 style="font-size: 16px; margin-bottom: 10px; color: #475569;">近期足跡</h3>
+      <div id="history-list" class="history-list">
+        <!-- JS 動態插入 -->
+      </div>
+      <button id="history-close">關閉</button>
+    </div>
+  </div>
+
+  <!-- 隱藏的成就卡片區塊 (專供 html2canvas 截圖用) -->
+  <div id="capture-container" style="position: absolute; top: -9999px; left: -9999px;">
+    <div id="achievement-card" class="achievement-card">
+      <div class="ac-header">FOCUS TRAVEL</div>
+      <div class="ac-title">我完成了一趟專注旅行！🚗</div>
+      <div class="ac-route" id="ac-route">台北 ➔ 高雄</div>
+      <div class="ac-stats">
+        <div class="ac-stat">
+          <div class="ac-val" id="ac-dist">15.2 km</div>
+          <div class="ac-lbl">移動距離</div>
+        </div>
+        <div class="ac-stat">
+          <div class="ac-val" id="ac-time">02:30:00</div>
+          <div class="ac-lbl">專注時間</div>
+        </div>
+      </div>
+      <div class="ac-footer">一起用專注環島吧！ 🗺️</div>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+  <script src="app.js"></script>
+  <script src="export-modal.js"></script>
+</body>
+
+</html>

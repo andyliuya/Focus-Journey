@@ -1,0 +1,925 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Orbitron:wght@400;700&display=swap');
+
+:root {
+  --glass-bg: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(255, 255, 255, 0.4);
+  --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.12);
+  --primary: #3b82f6;
+  --primary-dark: #2563eb;
+  --danger: #f87171;
+  --success: #34d399;
+  --text: #1e293b;
+  --text-light: #64748b;
+  --radius: 16px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  background: #e0ecff;
+}
+
+#map {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.panel {
+  position: fixed;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-shadow);
+  z-index: 1000;
+  padding: 16px;
+  transition: transform .3s ease, opacity .3s ease;
+}
+
+/* 左上 - 旅行儀表板 */
+#dashboard-panel {
+  top: 16px;
+  left: 16px;
+  width: 300px;
+}
+
+#dashboard-panel h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+#dashboard-panel .label {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+#dashboard-panel .stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+#dashboard-panel .stat-row:last-child {
+  border-bottom: none;
+}
+
+#dashboard-panel .stat-value {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 15px;
+}
+
+#dashboard-panel .next-stop {
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 4px;
+}
+
+#dashboard-panel .badge {
+  display: inline-block;
+  background: var(--primary);
+  color: #fff;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 6px;
+}
+
+/* 右上 - BGM */
+#bgm-panel {
+  top: 16px;
+  right: 16px;
+  width: 280px;
+}
+
+#bgm-panel .bgm-title {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.bgm-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.bgm-controls button {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--text);
+  transition: color .2s;
+}
+
+.bgm-controls button:hover {
+  color: var(--primary);
+}
+
+.bgm-controls .play-btn {
+  font-size: 32px;
+}
+
+#bgm-progress {
+  width: 100%;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+#bgm-progress-bar {
+  height: 100%;
+  width: 0;
+  background: var(--primary);
+  transition: width .3s;
+}
+
+.bgm-time {
+  font-size: 11px;
+  color: var(--text-light);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+#volume-slider {
+  width: 80px;
+  accent-color: var(--primary);
+}
+
+.bgm-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.bgm-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background .2s;
+}
+
+.bgm-item:hover {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.bgm-item.active {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+.bgm-item .num {
+  color: var(--text-light);
+  min-width: 16px;
+}
+
+/* 左下 - Todo */
+#todo-panel {
+  bottom: 16px;
+  left: 16px;
+  width: 280px;
+}
+
+#todo-panel h3 {
+  font-size: 15px;
+  margin-bottom: 8px;
+}
+
+#todo-input-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+#todo-input {
+  flex: 1;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+#todo-input:focus {
+  border-color: var(--primary);
+}
+
+#todo-add-btn {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+#todo-list {
+  list-style: none;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+#todo-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  font-size: 13px;
+}
+
+#todo-list li.done span {
+  text-decoration: line-through;
+  color: var(--text-light);
+}
+
+#todo-list li input[type=checkbox] {
+  accent-color: var(--primary);
+}
+
+#todo-list li button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 15px;
+}
+
+/* 右下 - 計時器 */
+#timer-panel {
+  bottom: 16px;
+  right: 16px;
+  width: 300px;
+  text-align: center;
+}
+
+.timer-tabs {
+  display: flex;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  margin-bottom: 12px;
+}
+
+.timer-tab {
+  flex: 1;
+  padding: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  transition: all .2s;
+}
+
+.timer-tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+#timer-display {
+  font-family: 'Orbitron', monospace;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 8px 0 4px;
+  letter-spacing: 2px;
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    text-shadow: 0 0 4px rgba(59, 130, 246, 0.15);
+  }
+
+  50% {
+    text-shadow: 0 0 16px rgba(59, 130, 246, 0.3);
+  }
+}
+
+#timer-label {
+  font-size: 12px;
+  color: var(--text-light);
+  letter-spacing: 3px;
+  margin-bottom: 8px;
+}
+
+.pomodoro-settings {
+  margin-bottom: 10px;
+}
+
+.pomodoro-settings label {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+.pomodoro-settings input[type=number] {
+  width: 50px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  padding: 3px 6px;
+  text-align: center;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+#pomodoro-counter {
+  font-size: 12px;
+  color: var(--text-light);
+  margin-bottom: 6px;
+}
+
+.timer-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.timer-buttons button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all .2s;
+}
+
+#btn-start {
+  background: var(--primary);
+  color: #fff;
+}
+
+#btn-start:hover {
+  background: var(--primary-dark);
+}
+
+#btn-pause {
+  background: rgba(0, 0, 0, 0.06);
+  color: var(--text);
+}
+
+#btn-end {
+  background: var(--danger);
+  color: #fff;
+  opacity: 0.85;
+}
+
+#btn-end:hover {
+  opacity: 1;
+}
+
+/* 活動偵測設定 */
+#activity-panel {
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: auto;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+
+#activity-panel .indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: blink 1.5s infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: .4;
+  }
+}
+
+#activity-panel input[type=number] {
+  width: 40px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 6px;
+  padding: 2px 4px;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* 彈窗 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+
+.modal-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  transform: translateY(20px);
+  transition: transform .3s;
+}
+
+.modal-overlay.show .modal {
+  transform: translateY(0);
+}
+
+.modal h2 {
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.modal p {
+  color: var(--text-light);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.modal .stat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.modal .stat-box {
+  background: rgba(59, 130, 246, 0.06);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.modal .stat-box .val {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.modal .stat-box .lbl {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.modal button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 32px;
+  font-size: 15px;
+  cursor: pointer;
+  font-family: inherit;
+  width: 100%;
+  transition: background .2s;
+}
+
+.modal button:hover {
+  background: var(--primary-dark);
+}
+
+/* 路線選擇器 */
+.route-picker {
+  margin: 16px 0;
+}
+
+.route-option {
+  padding: 10px;
+  border-radius: 10px;
+  margin: 6px 0;
+  cursor: pointer;
+  transition: all .2s;
+  font-size: 14px;
+  border: 2px solid transparent;
+  text-align: left;
+}
+
+.route-option:hover {
+  background: rgba(59, 130, 246, 0.06);
+}
+
+.route-option.selected {
+  border-color: var(--primary);
+  background: rgba(59, 130, 246, 0.08);
+  font-weight: 500;
+}
+
+.route-option .km {
+  font-size: 12px;
+  color: var(--text-light);
+}
+
+/* 提醒彈窗特殊樣式 */
+.alert-modal .modal {
+  border-top: 4px solid #f59e0b;
+}
+
+.alert-modal h2 {
+  color: #f59e0b;
+}
+
+/* 滾動條 */
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 2px;
+}
+
+/* 覆蓋 Leaflet divIcon 預設樣式 */
+.leaflet-div-icon {
+  background: none !important;
+  border: none !important;
+}
+
+/* 地圖角色標記（Tabisuru 風格） */
+.character-marker {
+  /* 移除 display: flex !important; 讓 MapLibre 內建的 transform 控制 Offset 得以生效 */
+  background: none !important;
+  border: none !important;
+  overflow: visible !important;
+}
+
+.char-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  animation: tabisuru-float 1.8s ease-in-out infinite;
+}
+
+/* 對話氣泡 */
+.char-bubble {
+  background: white;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  position: relative;
+}
+
+.char-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 4px 4px 0;
+  border-style: solid;
+  border-color: white transparent transparent transparent;
+}
+
+/* 圓形頭像框 */
+.char-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border: 3px solid white;
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  /* 防止圖片超出圓框 */
+}
+
+.char-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* 底部地圖定位指針 */
+.char-pointer {
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 12px solid #3b82f6;
+  /* 與路線同色 */
+  margin-top: -2px;
+  z-index: 1;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes tabisuru-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+/* 一鍵定位追蹤按鈕 */
+.recenter-btn {
+  position: absolute;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  padding: 10px 24px;
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  font-size: 15px;
+  font-weight: 600;
+  color: #3b82f6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+}
+
+.recenter-btn:hover {
+  background: #3b82f6;
+  color: white;
+  transform: translateX(-50%) scale(1.05);
+}
+
+@keyframes tabisuru-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes bounce-marker {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-ring {
+
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.4);
+    opacity: 0.5;
+  }
+}
+
+/* ======================================================== */
+/* 新增功能：歷史紀錄與結算成就卡片 */
+/* ======================================================== */
+
+/* 歷史紀錄按鈕 (右上角) */
+.history-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  padding: 10px 18px;
+  border-radius: 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+  color: var(--text-dark);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.history-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* 歷史紀錄彈窗清單 */
+.history-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-right: 5px;
+}
+
+.history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(241, 245, 249, 0.6);
+  border-radius: 12px;
+  margin-bottom: 8px;
+}
+
+.history-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.history-route {
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.history-detail {
+  font-size: 13px;
+  color: var(--text-light);
+}
+
+.history-export-btn {
+  background: none !important;
+  color: var(--primary) !important;
+  padding: 6px 12px !important;
+  width: auto !important;
+  border: 1px solid var(--primary) !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+}
+
+.history-export-btn:hover {
+  background: var(--primary) !important;
+  color: white !important;
+}
+
+/* 結算成就圖 (Instagram / 社群適用 1080x1080 版型) */
+.achievement-card {
+  width: 1080px;
+  height: 1080px;
+  background: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 100%);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  text-align: center;
+  box-sizing: border-box;
+  padding: 40px;
+}
+
+.achievement-card::before {
+  content: "📍";
+  font-size: 400px;
+  position: absolute;
+  top: -50px;
+  left: -50px;
+  opacity: 0.05;
+  transform: rotate(-15deg);
+}
+
+.achievement-card::after {
+  content: "🚶";
+  font-size: 300px;
+  position: absolute;
+  bottom: 0px;
+  right: -20px;
+  opacity: 0.05;
+}
+
+.ac-header {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--primary);
+  letter-spacing: 6px;
+  margin-bottom: 40px;
+}
+
+.ac-title {
+  font-size: 56px;
+  font-weight: 800;
+  color: #1e293b;
+  margin-bottom: 30px;
+}
+
+.ac-route {
+  font-size: 44px;
+  font-weight: 600;
+  color: #475569;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 20px 60px;
+  border-radius: 60px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
+  margin-bottom: 80px;
+  display: inline-block;
+}
+
+.ac-stats {
+  display: flex;
+  gap: 80px;
+  margin-bottom: 100px;
+  z-index: 10;
+}
+
+.ac-stat {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 50px;
+  border-radius: 40px;
+  box-shadow: 0 20px 50px rgba(59, 130, 246, 0.1);
+  min-width: 280px;
+}
+
+.ac-val {
+  font-size: 76px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 15px;
+}
+
+.ac-lbl {
+  font-size: 26px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.ac-footer {
+  font-size: 28px;
+  color: #94a3b8;
+  position: absolute;
+  bottom: 60px;
+  font-weight: 500;
+}
